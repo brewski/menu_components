@@ -1,13 +1,80 @@
 MenuComponents
 ==============
 
-Introduction goes here.
+MenuComponents is a rails plugin to manage your web application's menus.  It allows you to create "menu components" which are placed within the menu.  The primary features include:
 
+  - A Simple DSL for:
+      - declaring the default menu components for the application
+      - overriding the default menu for specific controllers
+      - specifying a menu component to be periodically updated
+      - rendering a menu component after the page has loaded
+
+  - DRY approach to factoring out setup code for menu partials
 
 Example
 =======
 
-Example goes here.
+A menu components is a rails partial plus an optional setup method.  In this example, there are 5 menu components: barcode_input, filling_stats, login_info, packing_stats, and search.  filling_stats and packing_stats have setup methods defined to provide local variables needed to render the partial.
+
+To create menu components, create a controller that will be used to render the menu component partials.  This controller must contain module named "MenuComponents".  The MenuComponents module is where the setup methods are defined.  Each setup method must return a hash, which will be passed as the locals to the partial.  In the example below, two menu component setup methods are defined, "packing_stats", and "filling_stats".  The other menu components do not require setup methods and thus do not have methods defined in MenuComponents.
+
+class MenuController < ApplicationController
+  module MenuComponents
+    def packing_stats
+      { :packing_stats => FulfillmentStats.packing_stats }
+    end
+
+    def filling_stats
+      { :filling_stats => FulfillmentStats.filling_stats }
+    end
+  end
+end
+
+For each menu component, create the partial view files:
+
+app/views/menu/_barcode_input.html.erb
+app/views/menu/_filling_stats.html.erb
+app/views/menu/_login_info.html.erb
+app/views/menu/_packing_stats.html.erb
+app/views/menu/_search.html.erb
+
+After the menu components have been defined, in the application controller, declare your MenuController as the controller to be used for rendering menu components.  Specify which menu components you want to be rendered by default on all controllers.
+
+class ApplicationController < ActionController::Base
+  include MenuComponents
+  
+  menu MenuController
+  add_menu_components :login_info, :search
+  add_updater_menu_components :packing_stats, :filling_stats, 30
+  add_updater_menu_components :bucket_stats, 30, :after_load => true
+  
+  ...
+end
+
+To change which menu components are rendered for a controller, you can add or remove components.
+
+class BarcodeController < ApplicationController
+  add_menu_components :barcode_input, :before => :login_info
+  remove_menu_components :packing_stats, :filling_stats
+  
+  ...
+end
 
 
-Copyright (c) 2008 [name of plugin creator], released under the MIT license
+Behind the Scenes
+=================
+
+In order to allow AJAX updating of the menu components, the MenuController must have actions defined for each updatable menu component.  These actions must first call the setup method, and then render the partial.  The MenuComponents plugin accomplishes this first by extending the MenuController with the MenuComponents module.  Then, for each method in MenuComponents, the plugin defines an action on the MenuComponents controller.  For the example above, inspecting the MenuController from the console:
+
+Loading development environment (Rails 2.2.2)
+>> MenuController.instance_methods(false)
+=> ["filling_stats", "packing_stats"]
+
+The filling_stats action (instance method) on MenuController created by the plugin looks like the following:
+
+def filling_stats
+  locals = self.class.send(:filling_stats)
+  render(:partial => "filling_stats", :locals => locals)
+end
+
+Copyright (c) 2008 Brian Abreu, released under the MIT license
