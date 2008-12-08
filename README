@@ -14,7 +14,7 @@ MenuComponents is a rails plugin to manage your web application's menus.  It all
 Example
 =======
 
-A menu components is a rails partial plus an optional setup method.  In this example, there are 5 menu components: barcode_input, filling_stats, login_info, packing_stats, and search.  filling_stats and packing_stats have setup methods defined to provide local variables needed to render the partial.
+A menu component is a rails partial plus an optional setup method.  In this example, there are 5 menu components: barcode_input, filling_stats, login_info, packing_stats, and search.  filling_stats and packing_stats have setup methods defined to provide local variables needed to render the partial.
 
 To create menu components, create a controller that will be used to render the menu component partials.  This controller must contain module named "MenuComponents".  The MenuComponents module is where the setup methods are defined.  Each setup method must return a hash, which will be passed as the locals to the partial.  In the example below, two menu component setup methods are defined, "packing_stats", and "filling_stats".  The other menu components do not require setup methods and thus do not have methods defined in MenuComponents.
 
@@ -30,7 +30,7 @@ class MenuController < ApplicationController
   end
 end
 
-For each menu component, create the partial view files:
+For each menu component, create the partial view file:
 
 app/views/menu/_barcode_input.html.erb
 app/views/menu/_filling_stats.html.erb
