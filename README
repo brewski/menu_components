@@ -60,6 +60,18 @@ class BarcodeController < ApplicationController
   ...
 end
 
+Finally, in your layout, render the menu components:
+
+...
+<div id='content'>
+  <%= yield :layout %>
+</div>
+
+<div id="menu">
+  <%= render_menu_components %>
+</div>
+...
+
 
 Behind the Scenes
 =================
